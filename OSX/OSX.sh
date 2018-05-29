@@ -403,6 +403,7 @@ EOF
                       ;;
                 esac
             done
+	    echo "We dont support this hypervisor anymore best avoid it"
             minikube start \
               --vm-driver=xhyve \
               --v=10 \
@@ -537,51 +538,6 @@ spec:
         backend:
           serviceName: minio-dev
           servicePort: 9000
-EOF
-
-echo "Adding ingress for verdacio"
-
-cat << EOF | kubectl create -f -
-apiVersion: extensions/v1beta1
-kind: Ingress
-metadata:
-  name: verdacio-ingress
-  namespace: default
-  annotations:
-    kubernetes.io/ingress.class: "nginx"
-    ingress.kubernetes.io/enable-cors: "true"
-    ingress.kubernetes.io/proxy-body-size: "0"
-spec:
-  rules:
-  - host: npm.$PLATFORM_DOMAIN
-    http:
-      paths:
-      - path: /
-        backend:
-          serviceName: verdaccio-dev-verdaccio
-          servicePort: 4873
-EOF
-
-echo "adding ingress for gitlab"
-cat << EOF | kubectl create -f -
-apiVersion: extensions/v1beta1
-kind: Ingress
-metadata:
-  name: gitlab-ingress
-  namespace: default
-  annotations:
-    kubernetes.io/ingress.class: "nginx"
-    ingress.kubernetes.io/enable-cors: "true"
-    ingress.kubernetes.io/proxy-body-size: "0"
-spec:
-  rules:
-  - host: gitlab.$PLATFORM_DOMAIN
-    http:
-      paths:
-      - path: /
-        backend:
-          serviceName: gitlab-gitlab
-          servicePort: 8080
 EOF
 
 sleep 20
