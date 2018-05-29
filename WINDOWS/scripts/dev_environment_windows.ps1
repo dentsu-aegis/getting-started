@@ -45,7 +45,7 @@ $GOPATH =  "${GOROOT}\gopath"
 $COREDNSROOT = "c:\tools\windows-amd64"
 $OLDPATH = [Environment]::GetEnvironmentVariable("PATH","Machine")
 $PATH = "${OLDPATH};${GOPATH}\bin;${GOROOT}\bin"
-$PLATFORM_DOMAIN = !!!!SET-ME!!!!
+
 
 $InstalledB4 = Read-Host -Prompt 'Have You run the older version of this script? If so we need to cleanup some shit from a previous run, this will restart your machine and probably kill your dns'
 if ($InstalledB4 -eq "yes")  {
@@ -58,7 +58,7 @@ if ($InstalledB4 -eq "yes")  {
 }
 
 
-#persist environment variables
+# Persist environment variables
 
 [Environment]::SetEnvironmentVariable("GOROOT",$GOROOT,"Machine")
 [Environment]::SetEnvironmentVariable("GOPATH",$GOPATH,"Machine")
@@ -73,13 +73,17 @@ $command="hg"; try {if(Get-Command $command -ErrorAction Stop){"$command is inst
 $command="virtualbox"; try {if(Get-Command $command -ErrorAction Stop){"$command is installed"}} catch {choco install -y $command $force}
 $command="7z"; try {if(Get-Command $command -ErrorAction Stop){"$command is installed"}} catch {choco install -y 7zip.install 7z.portable 7zip.commandline $force}
 
+# Declare our software versions
+$HELM_VERSION = "2.7.0"
+$CORE_DNS_VERSION = "1.0.1"
+$DIR_ENV_VERSION = "2.13.1"
 
 if ($Upgrade -eq "yes")  {
   choco upgrade -y minikube $force
 }
 
 try {if(Get-Command helm -ErrorAction Stop){"helm is installed"}} catch {
-  iwr https://storage.googleapis.com/kubernetes-helm/helm-v2.7.0-windows-amd64.tar.gz -OutFile $env:SystemDrive\tools\helm.tar.gz
+  iwr https://storage.googleapis.com/kubernetes-helm/helm-v$HELM_VERSION-windows-amd64.tar.gz -OutFile $env:SystemDrive\tools\helm.tar.gz
   7z x $env:SystemDrive\tools\helm.tar.gz -aoa -o"$env:SystemDrive\tools\"
   7z x $env:SystemDrive\tools\helm.tar -aoa -o"$env:SystemDrive\tools\"
   $OLDPATH = [Environment]::GetEnvironmentVariable("PATH","Machine")
@@ -90,25 +94,16 @@ try {if(Get-Command helm -ErrorAction Stop){"helm is installed"}} catch {
 
 try {if(Get-Command coredns -ErrorAction Stop){"coredns is installed"}} catch {
   mkdir c:\temp -ErrorAction SilentlyContinue
-  iwr https://github.com/coredns/coredns/releases/download/v1.0.1/coredns_1.0.1_windows_amd64.tgz -OutFile c:\temp\coredns.tgz
+  iwr https://github.com/coredns/coredns/releases/download/v$CORE_DNS_VERSION/coredns_$CORE_DNS_VERSION_windows_amd64.tgz -OutFile c:\temp\coredns.tgz
   7z x c:\temp\coredns.tgz -aoa -o"c:\temp\tools\"
   7z x c:\temp\tools\coredns.tar -aoa -o"c:\temp\tools\"
   mv c:\temp\tools\coredns  $env:SystemDrive\tools\windows-amd64\coredns.exe
 }
 
 
-try {if(Get-Command helm -ErrorAction Stop){"helm is installed"}} catch {
-  ir https://storage.googleapis.com/kubernetes-helm/helm-v2.7.2-windows-amd64.tar.gz -OutFile $env:SystemDrive\tools\helm.tar.gz
-  7z x $env:SystemDrive\tools\helm.tar.gz -aoa -o"$env:SystemDrive\tools\"
-  7z x $env:SystemDrive\tools\helm.tar -aoa -o"$env:SystemDrive\tools\"
-  $OLDPATH = [Environment]::GetEnvironmentVariable("PATH","Machine")
-  $PATH = "${OLDPATH};$env:SystemDrive\tools\windows-amd64"
-  [Environment]::SetEnvironmentVariable("PATH",$PATH,"Machine")
-}
-
 try {if(Get-Command direnv -ErrorAction Stop){"direnv is installed"}} catch {
   mkdir c:\temp -ErrorAction SilentlyContinue
-  iwr https://github.com/direnv/direnv/releases/download/v2.13.1/direnv.windows-amd64.exe -OutFile $env:SystemDrive\tools\windows-amd64\direnv.exe
+  iwr https://github.com/direnv/direnv/releases/download/v$DIR_ENV_VERSION/direnv.windows-amd64.exe -OutFile $env:SystemDrive\tools\windows-amd64\direnv.exe
 }
 
 
@@ -117,6 +112,7 @@ $command="nssm"; try {if(Get-Command $command -ErrorAction Stop){"$command is in
 New-Item -ItemType Directory -Path $COREDNSROOT -Force | Out-Null
 New-Item -ItemType Directory -Path $COREDNSROOT/dns-zones -Force | Out-Null
 
+$PLATFORM_DOMAIN = !!!!SET-ME!!!!
 
 $coreconfig = @"
 .:53 {
@@ -133,10 +129,6 @@ $coreconfig = @"
 
 cluster.local { 
   proxy . 192.168.99.100:30500
-}
-
-internal.sedexonline.com { 
-  proxy . 10.0.10.4 
 }
 
 dev.int {
