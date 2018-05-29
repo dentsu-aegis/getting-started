@@ -131,7 +131,7 @@ cluster.local {
   proxy . 192.168.99.100:30500
 }
 
-dev.int {
+$PLATFORM_DOMAIN {
   file ${COREDNSROOT}/dns-zones/$PLATFORM_DOMAIN $PLATFORM_DOMAIN {
     transfer to *
   }
