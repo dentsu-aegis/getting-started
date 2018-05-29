@@ -139,6 +139,9 @@ curl https://sdk.cloud.google.com | bash
 export PATH=$HOME/google-cloud-sdk/bin:$PATH
 echo Y | gcloud components install kubectl || echo "already installed"
 echo Y | gcloud components upgrade
+AZ_REPO=$(lsb_release -cs)
+echo "deb [arch=amd64] https://packages.microsoft.com/repos/azure-cli/ $AZ_REPO main" | sudo tee /etc/apt/sources.list.d/azure-cli.list
+
 # Set the versions
 COREDNS_VERSION=0.9.10
 LOCAL_BUILDER=v1.0.0-no-net
